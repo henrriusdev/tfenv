@@ -129,7 +129,7 @@ func parseEnvFromFile(filePath string) (map[string]string, error) {
 }
 
 // Reads environment variables from the file and stores them in the model
-func (m model) readEnvFile() tea.Cmd {
+func (m model) readEnvFile(mockTfvarsPath ...string) tea.Cmd {
 	return func() tea.Msg {
 		envVars, err := parseEnvFromFile(m.envFilePath)
 		if err != nil {
@@ -137,7 +137,13 @@ func (m model) readEnvFile() tea.Cmd {
 			os.Exit(1)
 		}
 		m.variables = envVars
-		return m.askForTfvarsPath()
+
+		// If a mock value is provided, return it instead of prompting the user
+		if len(mockTfvarsPath) > 0 {
+			return mockTfvarsPath[0]
+		}
+
+		return m.askForTfvarsPath() // Normal case
 	}
 }
 
