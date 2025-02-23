@@ -10,7 +10,7 @@
 
 You can install this by using
 ```bash
-go install github.com/henrriusdev/tfenv@latest}
+go install github.com/henrriusdev/tfenv@latest
 ```
 
 ### **Windows**
