@@ -8,7 +8,7 @@
 
 ### **Go**
 
-You can install this by using
+You can install this by using:
 ```bash
 go install github.com/henrriusdev/tfenv@latest
 ```
@@ -16,14 +16,12 @@ go install github.com/henrriusdev/tfenv@latest
 ### **Windows**
 
 Run the following command in PowerShell:
-
 ```powershell
-Invoke-WebRequest -Uri "https://github.com/YOUR-USER/tfenv/releases/latest/download/install.ps1" -OutFile "install.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/henrriusdev/tfenv/main/install.ps1" -OutFile "install.ps1"
 .\install.ps1
 ```
 
 After installation, restart the terminal and run:
-
 ```powershell
 tfenv
 ```
@@ -33,13 +31,11 @@ tfenv
 ### **Linux/macOS**
 
 Run the following command in Terminal:
-
 ```sh
-curl -fsSL https://github.com/YOUR-USER/tfenv/releases/latest/download/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/henrriusdev/tfenv/main/install.sh | bash
 ```
 
 Once installed, you can run:
-
 ```sh
 tfenv
 ```
@@ -72,7 +68,7 @@ tfenv
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/YOUR-USER/tfenv.git
+   git clone https://github.com/henrriusdev/tfenv.git
    ```
 2. Navigate to the project:
    ```sh

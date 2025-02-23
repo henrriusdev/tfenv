@@ -9,15 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build CLI for Multiple Platforms
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        goos: [windows, linux, darwin]
-        goarch: [amd64, arm64]
-
+  build-windows:
+    runs-on: windows-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -27,36 +20,46 @@ jobs:
         with:
           go-version: "1.24"
 
-      - name: Build Executable
-        run: |
-          mkdir -p build
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o build/tfenv-${{ matrix.goos }}-${{ matrix.goarch }}
+      - name: Build Windows Executable
+        run: go build -o build/tfenv-windows-${{ matrix.goarch }}.exe
 
-      - name: Create Windows Installer Script
-        if: matrix.goos == 'windows'
-        run: |
-          mkdir -p build
-          echo '$destPath = "C:\Program Files\tfenv"' > build/install.ps1
-          echo '$exePath = "$destPath\tfenv.exe"' >> build/install.ps1
-          echo 'if (!(Test-Path $destPath)) { New-Item -ItemType Directory -Path $destPath | Out-Null }' >> build/install.ps1
-          echo 'Copy-Item "tfenv-${{ matrix.goos }}-${{ matrix.goarch }}" -Destination $exePath -Force' >> build/install.ps1
-          echo '$envPath = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::Machine)' >> build/install.ps1
-          echo 'if ($envPath -notlike "*$destPath*") { [System.Environment]::SetEnvironmentVariable("Path", "$envPath;$destPath", [System.EnvironmentVariableTarget]::Machine) }' >> build/install.ps1
-          echo 'Write-Host "✅ Installation complete. Restart the terminal and run ''tfenv''."' >> build/install.ps1
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: build/
 
-      - name: Create macOS/Linux Install Script
-        if: matrix.goos != 'windows'
-        run: |
-          mkdir -p build
-          echo '#!/bin/bash' > build/install.sh
-          echo 'DEST_PATH="/usr/local/bin/tfenv"' >> build/install.sh
-          echo 'sudo mv tfenv-${{ matrix.goos }}-${{ matrix.goarch }} $DEST_PATH' >> build/install.sh
-          echo 'sudo chmod +x $DEST_PATH' >> build/install.sh
-          echo 'echo "✅ Installation complete! Run ''tfenv'' to use the CLI."' >> build/install.sh
-          chmod +x build/install.sh
+  build-linux-macos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Verify Generated Files
-        run: ls -l build/
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24"
+
+      - name: Build Linux/macOS Executable
+        run: go build -o build/tfenv-linux-${{ matrix.goarch }}
+
+      - name: Upload Linux/macOS Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-macos-build
+          path: build/
+
+  release:
+    needs: [build-windows, build-linux-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Download All Built Binaries
+        uses: actions/download-artifact@v3
+        with:
+          path: build/
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
@@ -65,8 +68,12 @@ jobs:
           name: "Release ${{ github.ref_name }}"
           draft: false
           prerelease: false
-          files: |
-            build/install.ps1
-            build/install.sh
+          files:
+            - build/tfenv-windows-amd64.exe
+            - build/tfenv-windows-arm64.exe
+            - build/tfenv-linux-amd64
+            - build/tfenv-linux-arm64
+            - build/tfenv-darwin-amd64
+            - build/tfenv-darwin-arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
