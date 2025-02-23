@@ -24,7 +24,7 @@ jobs:
         run: go build -o build/tfenv-windows-${{ matrix.goarch }}.exe
 
       - name: Upload Windows Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: build/
@@ -44,7 +44,7 @@ jobs:
         run: go build -o build/tfenv-linux-${{ matrix.goarch }}
 
       - name: Upload Linux/macOS Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-macos-build
           path: build/
@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download All Built Binaries
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: build/
 
