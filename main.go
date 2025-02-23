@@ -45,25 +45,34 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.step {
 	case 0:
-		m.envFilePath = msg.(string)
-		m.step++
-		return m, m.readEnvFile()
-	case 1:
-		m.tfvarsPath = msg.(string)
-		m.step++
-		return m, m.generateTfvarsFile()
-	case 2:
-		m.createVarFile = msg.(bool)
-		m.step++
-		if m.createVarFile {
-			return m, m.generateVariablesTfFile()
+		// Check if msg is a string before assigning
+		if strMsg, ok := msg.(string); ok {
+			m.envFilePath = strMsg
+			m.step++
+			return m, m.readEnvFile()
 		}
-		fmt.Println("\n✅ Process completed successfully.")
-		return m, tea.Quit
+	case 1:
+		if strMsg, ok := msg.(string); ok {
+			m.tfvarsPath = strMsg
+			m.step++
+			return m, m.generateTfvarsFile()
+		}
+	case 2:
+		if boolMsg, ok := msg.(bool); ok {
+			m.createVarFile = boolMsg
+			m.step++
+			if m.createVarFile {
+				return m, m.generateVariablesTfFile()
+			}
+			fmt.Println("\n✅ Process completed successfully.")
+			return m, tea.Quit
+		}
 	case 3:
 		fmt.Println("\n✅ `variables.tf` file created successfully.")
 		return m, tea.Quit
 	}
+
+	// If msg is not one of the expected types, return the model without modification
 	return m, nil
 }
 
