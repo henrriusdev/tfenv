@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// Read .env file
-	variables, err := parseEnvFromFile(envFilePath)
+	variables, descriptions, err := parseEnvFromFile(envFilePath)
 	if err != nil {
 		fmt.Println("❌ Error reading .env file:", err)
 		os.Exit(1)
@@ -69,7 +69,7 @@ func main() {
 			variablesTfPath = "./variables.tf"
 		}
 
-		err := generateVariablesTfFile(variablesTfPath, variables)
+		err := generateVariablesTfFile(variablesTfPath, variables, descriptions)
 		if err != nil {
 			fmt.Println("❌ Error creating `variables.tf` file:", err)
 			os.Exit(1)
@@ -79,19 +79,21 @@ func main() {
 	fmt.Println("\n✅ Process completed successfully.")
 }
 
-// Reads and parses a `.env` file
-func parseEnvFromFile(filePath string) (map[string]string, error) {
+// Reads and parses a `.env` file with support for comments
+func parseEnvFromFile(filePath string) (map[string]string, map[string]string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer file.Close()
 	return parseEnv(file)
 }
 
-// Reads environment variables from a file
-func parseEnv(r io.Reader) (map[string]string, error) {
+// Reads environment variables from a file with support for inline comments
+func parseEnv(r io.Reader) (map[string]string, map[string]string, error) {
 	vars := make(map[string]string)
+	descriptions := make(map[string]string) // Store comments as descriptions
+
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -100,10 +102,18 @@ func parseEnv(r io.Reader) (map[string]string, error) {
 		}
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) == 2 {
-			vars[parts[0]] = parts[1]
+			key := strings.TrimSpace(parts[0])
+			valueParts := strings.SplitN(parts[1], "#", 2)
+			value := strings.TrimSpace(valueParts[0])
+			vars[key] = value
+
+			// Store the comment (if present)
+			if len(valueParts) > 1 {
+				descriptions[key] = strings.TrimSpace(valueParts[1])
+			}
 		}
 	}
-	return vars, scanner.Err()
+	return vars, descriptions, scanner.Err()
 }
 
 // Generates the `.tfvars` file
@@ -124,8 +134,8 @@ func generateTfvarsFile(filePath string, variables map[string]string) error {
 	return nil
 }
 
-// Generates the `variables.tf` file
-func generateVariablesTfFile(filePath string, variables map[string]string) error {
+// Generates the `variables.tf` file with descriptions from `.env`
+func generateVariablesTfFile(filePath string, variables map[string]string, descriptions map[string]string) error {
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
@@ -134,7 +144,12 @@ func generateVariablesTfFile(filePath string, variables map[string]string) error
 
 	writer := bufio.NewWriter(file)
 	for key := range variables {
-		line := fmt.Sprintf("variable \"%s\" {\n  description = \"\"\n  type        = string\n}\n\n", key)
+		desc := descriptions[key] // Get the description from `.env`
+		if desc == "" {
+			desc = "No description available"
+		}
+
+		line := fmt.Sprintf("variable \"%s\" {\n  description = \"%s\"\n  type        = string\n}\n\n", key, desc)
 		writer.WriteString(line)
 	}
 	writer.Flush()
