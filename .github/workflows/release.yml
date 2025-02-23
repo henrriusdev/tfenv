@@ -50,7 +50,7 @@ jobs:
           path: build/
 
   release:
-    needs: [build-windows, build-linux-macos]
+    needs: [ build-windows, build-linux-macos ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -68,12 +68,12 @@ jobs:
           name: "Release ${{ github.ref_name }}"
           draft: false
           prerelease: false
-          files:
-            - build/tfenv-windows-amd64.exe
-            - build/tfenv-windows-arm64.exe
-            - build/tfenv-linux-amd64
-            - build/tfenv-linux-arm64
-            - build/tfenv-darwin-amd64
-            - build/tfenv-darwin-arm64
+          files: |
+            build/tfenv-windows-amd64.exe
+            build/tfenv-windows-arm64.exe
+            build/tfenv-linux-amd64
+            build/tfenv-linux-arm64
+            build/tfenv-darwin-amd64
+            build/tfenv-darwin-arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
