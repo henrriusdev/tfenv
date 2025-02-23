@@ -18,7 +18,7 @@ go install github.com/henrriusdev/tfenv@latest
 Run the following command in PowerShell:
 
 ```powershell
-Invoke-WebRequest -Uri "https://github.com/YOUR-USER/tfenv/releases/latest/download/install.ps1" -OutFile "install.ps1"
+Invoke-WebRequest -Uri "https://github.com/henrriusdev/tfenv/releases/latest/download/install.ps1" -OutFile "install.ps1"
 .\install.ps1
 ```
 
@@ -35,7 +35,7 @@ tfenv
 Run the following command in Terminal:
 
 ```sh
-curl -fsSL https://github.com/YOUR-USER/tfenv/releases/latest/download/install.sh | bash
+curl -fsSL https://github.com/henrriusdev/tfenv/releases/latest/download/install.sh | bash
 ```
 
 Once installed, you can run:
