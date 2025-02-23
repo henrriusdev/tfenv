@@ -35,7 +35,7 @@ tfenv
 Run the following command in Terminal:
 
 ```sh
-curl -fsSL https://github.com/YOUR-USER/tfenv/releases/ d/install.sh | bash
+curl -fsSL https://github.com/YOUR-USER/tfenv/releases/latest/download/install.sh | bash
 ```
 
 Once installed, you can run:
