@@ -43,33 +43,31 @@ func (m model) Init() tea.Cmd {
 
 // Update function for managing application state
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch m.step {
-	case 0:
-		// Check if msg is a string before assigning
-		if strMsg, ok := msg.(string); ok {
-			m.envFilePath = strMsg
-			m.step++
-			return m, m.readEnvFile()
-		}
-	case 1:
-		if strMsg, ok := msg.(string); ok {
-			m.tfvarsPath = strMsg
-			m.step++
-			return m, m.generateTfvarsFile()
-		}
-	case 2:
-		if boolMsg, ok := msg.(bool); ok {
-			m.createVarFile = boolMsg
-			m.step++
-			if m.createVarFile {
+	switch msg := msg.(type) {
+	case tea.KeyMsg: // Capture keyboard input
+		switch msg.Type {
+		case tea.KeyEnter:
+			m.step++ // Move to the next step when Enter is pressed
+			switch m.step {
+			case 1:
+				return m, m.readEnvFile()
+			case 2:
+				return m, m.generateTfvarsFile()
+			case 3:
 				return m, m.generateVariablesTfFile()
+			default:
+				return m, tea.Quit
 			}
-			fmt.Println("\n✅ Process completed successfully.")
-			return m, tea.Quit
 		}
-	case 3:
-		fmt.Println("\n✅ `variables.tf` file created successfully.")
-		return m, tea.Quit
+	case string: // Ensure string inputs are properly assigned
+		switch m.step {
+		case 0:
+			m.envFilePath = msg
+		case 1:
+			m.tfvarsPath = msg
+		case 2:
+			m.createVarFile = (msg == "yes")
+		}
 	}
 
 	// If msg is not one of the expected types, return the model without modification
@@ -79,13 +77,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	switch m.step {
 	case 0:
-		return "\n📂 Looking for `.env` file in the current directory..."
+		return "\n📂 Looking for `.env` file...\n\n" +
+			"🔹 Press Enter to continue or type a custom `.env` path: "
 	case 1:
 		return "\n💾 Enter the path to save `.tfvars` file: "
 	case 2:
 		return "\n📌 Do you want to generate a `variables.tf` file? (yes/no): "
 	default:
-		return ""
+		return "\n✅ Process completed successfully."
 	}
 }
 
